@@ -1,0 +1,7 @@
+/venv/
+/runs/
+/imgs/*
+/datasets/
+*.onnx
+*.pt
+*.txt
