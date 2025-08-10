@@ -7,11 +7,15 @@ import time # for frame timing
 from datetime import timedelta
 from cap_from_youtube import cap_from_youtube # to capture video from YouTube
 import sys # for command line arguments
+import os # for file path handling
 
 from csound import csound # for audio processing
 import constants
 
 import random # for random number generation
+import yaml # for accessing yaml file
+import accessYaml # for accessing yaml data
+from genYaml import genYaml # for generating yaml file
 
 # Get the first argument from command line and second will be URL to the YT video
 if len(sys.argv) >= 2:
@@ -19,6 +23,15 @@ if len(sys.argv) >= 2:
 else:
     print("No URL provided. Using default URL.")
     url = constants.DEFAULT_YT_URL
+    
+# Check if Yaml file exists
+yaml_file = constants.YAML_PATH
+if not os.path.exists(yaml_file):
+    print(f"YAML file not found, creating {yaml_file}")
+    genYaml()  # Generate the YAML file if it doesn't exist
+    print(f"Edit yaml file {yaml_file} to add instrument numbers for objects before running the script.")
+    exit(1)
+    
 
 # Load the model
 yolo = YOLO('yolo11n.pt')
@@ -77,6 +90,9 @@ def y_ratio(y):
     """Converts a Y coordinate to a 0-1 ratio based on the image height."""
     return y / original_height
 
+# Accessing Yaml file to get instrument numbers for objects
+yaml = accessYaml.AccessYaml()
+
 # --------------------------------------------------------------------
 # Store the track history
 track_history = defaultdict(lambda: [])
@@ -110,12 +126,13 @@ while True:
     if result.boxes and result.boxes.is_track: 
         boxes = result.boxes.xywh.cpu()
         track_ids = result.boxes.id.int().cpu().tolist()
+        class_ids = result.boxes.cls.int().cpu().tolist()
 
         # Visualize the result on the frame
         frame = result.plot()
 
         # Plot the tracks
-        for box, track_id in zip(boxes, track_ids):
+        for box, track_id, class_id in zip(boxes, track_ids, class_ids):
             x, y, _, _ = box
             track = track_history[track_id]
             track.append((x, y))
@@ -136,7 +153,7 @@ while True:
             
             # Check if track_id is already playing
             if track_id not in active_ids.keys():
-                instrNum = random.randint(1, 2)
+                instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
                 active_ids[track_id] = (instrNum)
                 cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {constants.BASE_FREQ} {constants.AMP/constants.MAX_DETECTIONS}")
             
