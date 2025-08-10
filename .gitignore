@@ -5,3 +5,5 @@
 *.onnx
 *.pt
 *.txt
+/YTCV2/output.yaml
+YTCV2/__pycache__/

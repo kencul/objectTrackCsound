@@ -10,7 +10,7 @@ class csound:
         self.cs = ctcsound.Csound()
 
         # Step 2: Compile CSD from text or file
-        self.csd = Path('C:/Users/Ken/Desktop/humanTracking/YTCV2/csound.csd').read_text()  # Assuming csound.csd is in the same directory
+        self.csd = Path('./csound.csd').read_text()  # Assuming csound.csd is in the same directory
         
         # Compile the CSD
         result = self.cs.compile_csd(self.csd, 1) 

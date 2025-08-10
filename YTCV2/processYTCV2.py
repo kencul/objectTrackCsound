@@ -11,6 +11,8 @@ import sys # for command line arguments
 from csound import csound # for audio processing
 import constants
 
+import random # for random number generation
+
 # Get the first argument from command line and second will be URL to the YT video
 if len(sys.argv) >= 2:
     url = sys.argv[1]
@@ -89,7 +91,7 @@ cs.start()
 cs.set_control_channel("freq", 110)
 playing = False
 
-active_ids = set()
+active_ids = {}
 
 while True:
     ret, frame = cap.read()
@@ -122,7 +124,7 @@ while True:
             cs.set_control_channel(f"x{track_id}", x_ratio(x))
             cs.set_control_channel(f"y{track_id}", 1 - y_ratio(y))
             # Debug
-            print(f"x ratio: {x_ratio(x)}, y ratio: {1 - y_ratio(y)}")
+            # print(f"x ratio: {x_ratio(x)}, y ratio: {1 - y_ratio(y)}")
             # print(f"x coordinate: {x}, y coordinate: {y}")
             
             if len(track) > 30:  # retain 30 tracks for 30 frames
@@ -133,16 +135,18 @@ while True:
             cv2.polylines(frame, [points], isClosed=False, color=(50, 230, 230), thickness=5)
             
             # Check if track_id is already playing
-            if track_id not in active_ids:
-                active_ids.add(track_id)
-                cs.event_string(f"i 1.{track_id} 0 -1 {track_id} {constants.BASE_FREQ} {constants.AMP/constants.MAX_DETECTIONS}")
+            if track_id not in active_ids.keys():
+                instrNum = random.randint(1, 2)
+                active_ids[track_id] = (instrNum)
+                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {constants.BASE_FREQ} {constants.AMP/constants.MAX_DETECTIONS}")
             
             #print(f"Track ID: {track_id}, X: {x}, Y: {y}")
                 
-        ids_to_remove = active_ids - set(track_ids)
+        ids_to_remove = set(active_ids.keys()) - set(track_ids)
         for track_id in ids_to_remove:
-            active_ids.remove(track_id)
-            cs.event_string(f"i -1.{track_id} 0 0")
+            # Remove the track from active_ids
+            instrNum = active_ids.pop(track_id)
+            cs.event_string(f"i -{instrNum}.{track_id} 0 0")
             #print(f"Stopping track ID: {track_id}")
             
             # Remove the entry from track_history if needed
@@ -151,9 +155,13 @@ while True:
                 
     # If no boxes are detected, stop all active voices
     else:
-        for track_id in active_ids:
-            cs.event_string(f"i -1.{track_id} 0 0")
-        active_ids.clear()
+        if len(active_ids) == 0:
+            continue  # No active tracks to stop
+        
+        track_ids = list(active_ids.keys())
+        for track_id in track_ids:
+            instrNum = active_ids.pop(track_id)
+            cs.event_string(f"i -{instrNum}.{track_id} 0 0")
         track_history.clear()
         
         
