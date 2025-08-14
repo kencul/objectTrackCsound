@@ -5,12 +5,13 @@ from pathlib import Path
 
 
 class csound:
-    def __init__(self):
+    def __init__(self, directory):
         # Step 1: Create csound instance
         self.cs = ctcsound.Csound()
 
         # Step 2: Compile CSD from text or file
-        self.csd = Path('./csound.csd').read_text()  # Assuming csound.csd is in the same directory
+        file = directory / 'csound.csd'
+        self.csd = file.read_text()
         
         # Compile the CSD
         result = self.cs.compile_csd(self.csd, 1) 

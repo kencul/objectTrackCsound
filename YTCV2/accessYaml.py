@@ -3,8 +3,8 @@ from pathlib import Path
 import constants
 
 class AccessYaml:
-    def __init__(self):
-        self.yaml_file = Path(constants.YAML_PATH)
+    def __init__(self, directory = ''):
+        self.yaml_file = directory / constants.YAML_PATH if directory else Path(constants.YAML_PATH)
         with open(self.yaml_file, 'r') as f:
             self.data = yaml.safe_load(f)
     

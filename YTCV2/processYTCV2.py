@@ -8,6 +8,7 @@ from datetime import timedelta
 from cap_from_youtube import cap_from_youtube # to capture video from YouTube
 import sys # for command line arguments
 import os # for file path handling
+from pathlib import Path # for path handling
 
 from csound import csound # for audio processing
 import constants
@@ -31,13 +32,24 @@ else:
 if projectDir.check_project_dir(sys.argv[1]):
     sys.exit(1)  # If the directory was incomplete, exit the program
 
+directory = Path(sys.argv[1])
+
 # Load the model
 yolo = YOLO('yolo11n.pt')
+
+# Load project config
+config_yaml = directory / 'config.yaml'
+with open(config_yaml, 'r') as f:
+    config_data = yaml.safe_load(f)
 
 # Load the video capture
 # url = "https://www.youtube.com/watch?v=O0du5kMKHMk"   # Ireland
 # url = "https://www.youtube.com/watch?v=alN1ePd2mrg" # cats
-start_time = timedelta(seconds=constants.START_TIME)
+url = config_data.get('YT_URL', None)
+if not url:
+    print("Error: YT_URL not found in config.yaml. Please provide a valid YouTube URL.")
+    exit(1)
+start_time = timedelta(seconds=config_data.get('YT_START_TIME', 0))  # Default start time is 0 seconds
 cap = cap_from_youtube(url, '360p', start=start_time)
 
 fps = cap.get(cv2.CAP_PROP_FPS)
@@ -50,8 +62,13 @@ frametime = int(1 / fps * 1000)
 def findScale(original_width, original_height):
     aspect_ratio = original_width / original_height
 
-    screen_width, screen_height = constants.SCREEN_WIDTH, constants.SCREEN_HEIGHT  # Screen resolution to match
-
+    screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Screen resolution to match
+    
+    # Check if screen dimensions are provided
+    if screen_width is None or screen_height is None:
+        print("SCREEN_WIDTH and SCREEN_HEIGHT not found in config.yaml. Using input dimensions.")
+        return original_width, original_height
+    
     print(f"Frame resolution: {original_width}x{original_height}, Aspect Ratio: {aspect_ratio:.2f}")
     max_scale_for_width = screen_width / original_width
     max_scale_for_height = screen_height / original_height
@@ -89,14 +106,14 @@ def y_ratio(y):
     return y / original_height
 
 # Accessing Yaml file to get instrument numbers for objects
-yaml = accessYaml.AccessYaml()
+yaml = accessYaml.AccessYaml(directory)
 
 # --------------------------------------------------------------------
 # Store the track history
 track_history = defaultdict(lambda: [])
 
 # Initialize Csound
-cs = csound()
+cs = csound(directory)
 if cs == None:
     print("Csound initialization failed.")
     sys.exit(1)
@@ -115,9 +132,9 @@ while True:
     result = yolo.track(frame, 
                         persist=True, 
                         verbose=False, 
-                        conf=constants.YOLO_CONFIDENCE, 
-                        iou=constants.YOLO_IOU_THRESHOLD,
-                        max_det=constants.MAX_DETECTIONS)[0]
+                        conf=config_data.get('YOLO_CONF_THRESHOLD', 0.3),
+                        iou=config_data.get('YOLO_IOU_THRESHOLD', 0.5),
+                        max_det=config_data.get('MAX_DETECTIONS', 3))[0]
     
     # Get the boxes and track IDs
     # REF: https://docs.ultralytics.com/reference/engine/results/#ultralytics.engine.results.Boxes
@@ -153,7 +170,7 @@ while True:
             if track_id not in active_ids.keys():
                 instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
                 active_ids[track_id] = (instrNum)
-                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {constants.BASE_FREQ} {constants.AMP/constants.MAX_DETECTIONS}")
+                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)}")
             
             #print(f"Track ID: {track_id}, X: {x}, Y: {y}")
                 

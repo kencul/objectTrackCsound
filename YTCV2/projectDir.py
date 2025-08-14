@@ -49,7 +49,7 @@ def check_project_dir(directory):
         else:
             raise FileNotFoundError(f"Source csound file not found at {src_path.resolve()}. Please ensure it exists.")
         
-    # Check if contants.py exists
+    # Check if config.yaml exists
     constants_path = directory / 'config.yaml'
     if not constants_path.exists():
         print(f"Constants file 'config.yaml' does not exist in the directory. Creating one now...")
