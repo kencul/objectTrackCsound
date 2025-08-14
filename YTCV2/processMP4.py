@@ -18,6 +18,7 @@ import yaml # for accessing yaml file
 import accessYaml # for accessing yaml data
 from genYaml import genYaml # for generating yaml file
 import projectDir # for project directory management
+import downloadYT # for downloading YouTube videos
 
 # Get the first argument from command line and second will be URL to the YT video
 if len(sys.argv) >= 2:
@@ -28,7 +29,6 @@ else:
     sys.exit(1)
     
 # Check directory
-
 if projectDir.check_project_dir(sys.argv[1]):
     sys.exit(1)  # If the directory was incomplete, exit the program
 
@@ -43,16 +43,35 @@ with open(config_yaml, 'r') as f:
     config_data = yaml.safe_load(f)
 
 # Load the video capture
-# url = "https://www.youtube.com/watch?v=O0du5kMKHMk"   # Ireland
-# url = "https://www.youtube.com/watch?v=alN1ePd2mrg" # cats
-url = config_data.get('YT_URL', None)
-if not url:
-    print("Error: YT_URL not found in config.yaml. Please provide a valid YouTube URL.")
-    exit(1)
-start_time = timedelta(seconds=config_data.get('YT_START_TIME', 0))  # Default start time is 0 seconds
-cap = cap_from_youtube(url, '360p', start=start_time)
+source = config_data.get('SOURCE', None)
 
+# Select the source of the video based on the config
+if source == 'YT':
+    url = config_data.get('YT_URL', None)
+    if not url:
+        print("Error: YT_URL not found in config.yaml. Please provide a valid YouTube URL.")
+        exit(1)
+    video_file = downloadYT.check_local_file(url, directory)
+    cap = cv2.VideoCapture(str(video_file))
+elif source == 'VIDEO':
+    video_path = config_data.get('VIDEO_FILE', None)
+    if video_path is None:
+        print("Error: VIDEO_FILE not found in config.yaml. Please provide a valid video file path.")
+        exit(1)
+    video_file = directory / video_path
+    cap = cv2.VideoCapture(str(video_file))
+elif source == "WEBCAM":
+    cap = cv2.VideoCapture(0) # Use the default webcam
+else:
+    print("Error: Invalid SOURCE value in config.yaml. Please set to 'YT', 'VIDEO', or 'WEBCAM'.")
+
+# Set start time if specified
+start_time = config_data.get('YT_START_TIME', 0)  # Default start time is 0 seconds
 fps = cap.get(cv2.CAP_PROP_FPS)
+if start_time > 0:
+    cap.set(cv2.CAP_PROP_POS_MSEC, start_time * 1000)
+
+
 original_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 original_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 frametime = int(1 / fps * 1000)
@@ -204,7 +223,7 @@ while True:
     cv2.imshow('frame', frame)
 
     # Break the loop if 'q' is pressed
-    key = cv2.waitKey(frametime) & 0xFF
+    key = cv2.waitKey(1) & 0xFF
     if key == ord('q'):
         break
 

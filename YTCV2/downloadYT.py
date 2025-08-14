@@ -1,6 +1,11 @@
 import yt_dlp
 from pathlib import Path
 
+'''
+Functions to download YouTube videos and check for existing local files.
+Usage: check_local_file(url, directory)
+'''
+
 def check_id_of_url(url):
     """    
     Check the id of a YouTube video URL.
