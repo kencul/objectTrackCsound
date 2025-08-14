@@ -16,22 +16,20 @@ import random # for random number generation
 import yaml # for accessing yaml file
 import accessYaml # for accessing yaml data
 from genYaml import genYaml # for generating yaml file
+import projectDir # for project directory management
 
 # Get the first argument from command line and second will be URL to the YT video
 if len(sys.argv) >= 2:
     url = sys.argv[1]
 else:
-    print("No URL provided. Using default URL.")
-    url = constants.DEFAULT_YT_URL
+    print("Error: Missing required argument. Please provide a folder path.")
+    print("Usage: python processYTCV2.py <folder_path>")
+    sys.exit(1)
     
-# Check if Yaml file exists
-yaml_file = constants.YAML_PATH
-if not os.path.exists(yaml_file):
-    print(f"YAML file not found, creating {yaml_file}")
-    genYaml()  # Generate the YAML file if it doesn't exist
-    print(f"Edit yaml file {yaml_file} to add instrument numbers for objects before running the script.")
-    exit(1)
-    
+# Check directory
+
+if projectDir.check_project_dir(sys.argv[1]):
+    sys.exit(1)  # If the directory was incomplete, exit the program
 
 # Load the model
 yolo = YOLO('yolo11n.pt')

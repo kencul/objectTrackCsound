@@ -7,3 +7,4 @@
 *.txt
 /YTCV2/output.yaml
 /YTCV2/__pycache__/
+YTCV2/test/

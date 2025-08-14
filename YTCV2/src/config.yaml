@@ -1,0 +1,95 @@
+YOLO_MODEL_PATH: yolo11n.pt
+YOLO_CONFIDENCE: 0.3
+YOLO_IOU_THRESHOLD: 0.5
+MAX_DETECTIONS: 1
+
+SCREEN_WIDTH: 1728
+SCREEN_HEIGHT: 972
+
+BASE_FREQ: 110
+AMP: 0.5
+
+YAML_PATH: output.yaml
+
+Classes:
+  person
+  bicycle
+  car
+  motorcycle
+  airplane
+  bus
+  train
+  truck
+  boat
+  traffic light
+  fire hydrant
+  stop sign
+  parking meter
+  bench
+  bird
+  cat
+  dog
+  horse
+  sheep
+  cow
+  elephant
+  bear
+  zebra
+  giraffe
+  backbench
+  backpack
+  umbrella
+  handbag
+  tie
+  suitcase
+  frisbee
+  skis
+  snowboard
+  sports ball
+  kite
+  baseball bat
+  baseball glove
+  skateboard
+  surfboard
+  tennis racket
+  bottle
+  wine glass
+  cup
+  fork
+  knife
+  spoon
+  bowl
+  banana
+  apple
+  sandwich
+  orange
+  broccoli
+  carrot
+  hot dog
+  pizza
+  donut
+  cake
+  chair
+  couch
+  potted plant
+  bed
+  dining table
+  toilet
+  tv
+  laptop
+  mouse
+  keyboard
+  cell phone
+  microwave
+  oven
+  toaster
+  sink
+  refrigerator
+  book
+  clock
+  vase
+  scissors
+  teddy bear
+  hair drier
+  toothbrush
+
