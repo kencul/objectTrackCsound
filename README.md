@@ -24,3 +24,6 @@ Using this library is gives more control than Ultralytic functions' youtube grab
 
 This code snippet was used to visualize the movement of the detected objects.
 
+- [YT-DLP](https://github.com/yt-dlp/yt-dlp)
+
+What cap_from_youtube is built on. Better for downloading and access to metadata
