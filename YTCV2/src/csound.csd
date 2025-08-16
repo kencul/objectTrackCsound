@@ -15,47 +15,47 @@ gkfreq = 440
 ; Instrument 1: Generates a tone
 ; p4 = track ID, p5 = base frequency, p6 = amplitude
 instr 1
-; get the x and y positions from channels based on track ID
-Sxchn = sprintf("x%d", p4)
-kx = portk:k(chnget:k(Sxchn), 0.05)
-Sychn = sprintf("y%d", p4)
-ky = portk:k(chnget:k(Sychn), 0.05)
+    ; get the x and y positions from channels based on track ID
+    Sxchn = sprintf("x%d", p4)
+    kx = portk:k(chnget:k(Sxchn), 0.05)
+    Sychn = sprintf("y%d", p4)
+    ky = portk:k(chnget:k(Sychn), 0.05)
 
-kFreq = p5
-kAmp = p6
+    kFreq = p5
+    kAmp = p6
 
-kEnv init 0
-kEnv = linsegr:k(i(kEnv), 0.5, 1, 0.5, 0)
+    kEnv init 0
+    kEnv = linsegr:k(i(kEnv), 0.5, 1, 0.5, 0)
 
-aSaw poscil kAmp * kEnv, kFreq * (1+ky*4), 3
-aSquare poscil kAmp * kEnv, kFreq * (1+ky*4), 2
+    aSaw poscil kAmp * kEnv, kFreq * (1+ky*4), 3
+    aSquare poscil kAmp * kEnv, kFreq * (1+ky*4), 2
 
-aOut = aSaw * ky + aSquare * (1-ky)
+    aOut = aSaw * ky + aSquare * (1-ky)
 
-aOutL, aOutR pan2 aOut, kx
-out aOutL, aOutR
+    aOutL, aOutR pan2 aOut, kx
+    out aOutL, aOutR
 endin
 
 instr 2
-; get the x and y positions from channels based on track ID
-Sxchn = sprintf("x%d", p4)
-kx = portk:k(chnget:k(Sxchn), 0.05)
-Sychn = sprintf("y%d", p4)
-ky = portk:k(chnget:k(Sychn), 0.05)
+    ; get the x and y positions from channels based on track ID
+    Sxchn = sprintf("x%d", p4)
+    kx = portk:k(chnget:k(Sxchn), 0.05)
+    Sychn = sprintf("y%d", p4)
+    ky = portk:k(chnget:k(Sychn), 0.05)
 
-kFreq = p5
-kAmp = p6
+    kFreq = p5
+    kAmp = p6
 
-kEnv init 0
-kEnv = linsegr:k(i(kEnv), 0.5, 1, 0.5, 0)
+    kEnv init 0
+    kEnv = linsegr:k(i(kEnv), 0.5, 1, 0.5, 0)
 
-aSaw poscil kAmp * kEnv, kFreq * (1+ky*4)
-aSquare poscil kAmp * kEnv, kFreq * (1+ky*4)
+    aSaw poscil kAmp * kEnv, kFreq * (1+ky*4)
+    aSquare poscil kAmp * kEnv, kFreq * (1+ky*4)
 
-aOut = aSaw * ky + aSquare * (1-ky)
+    aOut = aSaw * ky + aSquare * (1-ky)
 
-aOutL, aOutR pan2 aOut, kx
-out aOutL, aOutR
+    aOutL, aOutR pan2 aOut, kx
+    out aOutL, aOutR
 endin
 
 

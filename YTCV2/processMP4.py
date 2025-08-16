@@ -133,7 +133,8 @@ track_history = defaultdict(lambda: [])
 
 # Initialize Csound
 cs = csound(directory)
-if cs == None:
+res = cs.initialize()
+if cs == 1:
     print("Csound initialization failed.")
     sys.exit(1)
 

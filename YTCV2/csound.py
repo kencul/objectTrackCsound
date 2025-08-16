@@ -12,16 +12,18 @@ class csound:
         # Step 2: Compile CSD from text or file
         file = directory / 'csound.csd'
         self.csd = file.read_text()
-        
+        return
+    
+    def initialize(self):
         # Compile the CSD
         result = self.cs.compile_csd(self.csd, 1) 
 
         if result != ctcsound.CSOUND_SUCCESS:
             print(f"Error compiling csd!", file=sys.stderr)
-            return
+            return 1
         self.csthread = ctcsound.CsoundPerformanceThread(self.cs.csound())
         print("Csound initialized successfully.")
-        return
+        return 0
     
     def start(self):
         print("Starting Csound...")
