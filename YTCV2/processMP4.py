@@ -144,7 +144,7 @@ playing = False
 
 active_ids = {}
 
-while True:
+while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
@@ -168,13 +168,15 @@ while True:
 
         # Plot the tracks
         for box, track_id, class_id in zip(boxes, track_ids, class_ids):
-            x, y, _, _ = box
+            x, y, w, h = box
             track = track_history[track_id]
             track.append((x, y))
             
             # send x y ratios to Csound
             cs.set_control_channel(f"x{track_id}", x_ratio(x))
             cs.set_control_channel(f"y{track_id}", 1 - y_ratio(y))
+            cs.set_control_channel(f"w{track_id}", w / original_width)
+            cs.set_control_channel(f"h{track_id}", h / original_height)
             # Debug
             # print(f"x ratio: {x_ratio(x)}, y ratio: {1 - y_ratio(y)}")
             # print(f"x coordinate: {x}, y coordinate: {y}")
@@ -190,7 +192,7 @@ while True:
             if track_id not in active_ids.keys():
                 instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
                 active_ids[track_id] = (instrNum)
-                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)}")
+                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)}, {x}, {y}, {w}, {h}")
             
             #print(f"Track ID: {track_id}, X: {x}, Y: {y}")
                 
@@ -207,14 +209,12 @@ while True:
                 
     # If no boxes are detected, stop all active voices
     else:
-        if len(active_ids) == 0:
-            continue  # No active tracks to stop
-        
-        track_ids = list(active_ids.keys())
-        for track_id in track_ids:
-            instrNum = active_ids.pop(track_id)
-            cs.event_string(f"i -{instrNum}.{track_id} 0 0")
-        track_history.clear()
+        if len(active_ids) != 0:
+            track_ids = list(active_ids.keys())
+            for track_id in track_ids:
+                instrNum = active_ids.pop(track_id)
+                cs.event_string(f"i -{instrNum}.{track_id} 0 0")
+            track_history.clear()
         
         
     # Resize frame for better display
