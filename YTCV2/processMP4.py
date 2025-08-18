@@ -3,8 +3,8 @@ from collections import defaultdict # for expanding list
 import cv2 # for image processing
 import numpy as np
 from ultralytics import YOLO # for inference model
-import time # for frame timing
-from datetime import timedelta
+# import time # for frame timing
+# from datetime import timedelta
 from cap_from_youtube import cap_from_youtube # to capture video from YouTube
 import sys # for command line arguments
 import os # for file path handling
@@ -42,6 +42,37 @@ config_yaml = directory / 'config.yaml'
 with open(config_yaml, 'r') as f:
     config_data = yaml.safe_load(f)
 
+#----------------------------------------------------
+# Calculate maximum scale for the frame while maintaining aspect ratio
+def findScale(original_width, original_height):
+    aspect_ratio = original_width / original_height
+    
+    print(f"Frame resolution: {original_width}x{original_height}, Aspect Ratio: {aspect_ratio:.2f}")
+    max_scale_for_width = screen_width / original_width
+    max_scale_for_height = screen_height / original_height
+
+    # Calculate the maximum allowable scale to fit within screen dimensions
+    if max_scale_for_width > 0 and max_scale_for_height > 0:
+        max_scale = min(max_scale_for_width, max_scale_for_height)
+    elif max_scale_for_width == 0 or max_scale_for_height == 0:
+        max_scale = 1.0
+
+    # Use the calculated scale to resize image
+    new_width = int(original_width * max_scale)
+    new_height = int(original_height * max_scale)
+    print(f"Resized dimensions: {new_width}x{new_height}")
+    return new_width, new_height
+
+# Determine if resizing is needed
+
+cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
+screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Fetch screen resolutions
+needResizing = screen_width is None or screen_height is None
+if needResizing:
+    width, height = findScale(original_width, original_height)
+    
+
+#-----------------------------------------------------------------
 # Load the video capture
 source = config_data.get('SOURCE', None)
 
@@ -74,38 +105,9 @@ if start_time > 0:
 
 original_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 original_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-frametime = int(1 / fps * 1000)
+#frametime = int(1 / fps * 1000)
 
-#-----------------------------
-# Calculate the  scale for the frame
-def findScale(original_width, original_height):
-    aspect_ratio = original_width / original_height
-
-    screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Screen resolution to match
-    
-    # Check if screen dimensions are provided
-    if screen_width is None or screen_height is None:
-        print("SCREEN_WIDTH and SCREEN_HEIGHT not found in config.yaml. Using input dimensions.")
-        return original_width, original_height
-    
-    print(f"Frame resolution: {original_width}x{original_height}, Aspect Ratio: {aspect_ratio:.2f}")
-    max_scale_for_width = screen_width / original_width
-    max_scale_for_height = screen_height / original_height
-
-    # Calculate the maximum allowable scale to fit within screen dimensions
-    if max_scale_for_width > 0 and max_scale_for_height > 0:
-        max_scale = min(max_scale_for_width, max_scale_for_height)
-    elif max_scale_for_width == 0 or max_scale_for_height == 0:
-        max_scale = 1.0
-
-    # Use the calculated scale to resize image
-    new_width = int(original_width * max_scale)
-    new_height = int(original_height * max_scale)
-    print(f"Resized dimensions: {new_width}x{new_height}")
-    return new_width, new_height
-
-width, height = findScale(original_width, original_height)
-
+        
 # Function to get class colors
 def getColours(cls_num):
     base_colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]
@@ -192,7 +194,7 @@ while cap.isOpened():
             if track_id not in active_ids.keys():
                 instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
                 active_ids[track_id] = (instrNum)
-                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)}, {x}, {y}, {w}, {h}")
+                cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)} {x} {y} {w} {h}")
             
             #print(f"Track ID: {track_id}, X: {x}, Y: {y}")
                 
@@ -205,8 +207,7 @@ while cap.isOpened():
             
             # Remove the entry from track_history if needed
             if track_id in track_history:
-                del track_history[track_id]
-                
+                del track_history[track_id]           
     # If no boxes are detected, stop all active voices
     else:
         if len(active_ids) != 0:
@@ -218,7 +219,8 @@ while cap.isOpened():
         
         
     # Resize frame for better display
-    # frame = cv2.resize(frame, (width, height))  
+    if needResizing:
+        frame = cv2.resize(frame, (width, height))  
 
     # Show the image
     cv2.imshow('frame', frame)
