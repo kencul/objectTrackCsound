@@ -20,9 +20,6 @@ MAX_DETECTIONS: 1
 
 #------------------------------------
 # Output video settings
-# Set fullscreen. Fullscreen will override SCREEN_WIDTH and SCREEN_HEIGHT
-FULLSCREEN: True
-
 # Sets maximum pixel dimensions of the output video
 # Video will be resized to fit within these dimensions
 SCREEN_WIDTH: 1728

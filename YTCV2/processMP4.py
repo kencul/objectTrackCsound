@@ -169,6 +169,12 @@ while cap.isOpened():
         # extra code...
         # Iterate through the boxes and track IDs
         for box, track_id, class_id in zip(boxes, track_ids, class_ids):
+            # access associated instrument numbers from yaml
+            instrList = yaml.access_data(constants.CLASSES[class_id])
+            # Ignore if no instruments are assigned to the object class
+            if instrList is None or len(instrList) == 0:
+                continue
+            
             x, y, w, h = box
             track = track_history[track_id]
             track.append((x, y))
@@ -188,7 +194,7 @@ while cap.isOpened():
             
             # Check if track_id is already playing
             if track_id not in active_ids.keys():
-                instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
+                instrNum = random.choice(instrList)
                 active_ids[track_id] = (instrNum)
                 cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)} {x} {y} {w} {h}")
                 
@@ -224,9 +230,6 @@ while cap.isOpened():
     if key == ord('q') or chr(key) == '\x1b':  # Check for 'q' or ESC key
         break
     
-    # # Break loop if the window is closed
-    # if cv2.getWindowProperty('image',cv2.WND_PROP_VISIBLE) < 1:        
-    #     break
 
 # release the video capture and destroy all windows
 cv2.destroyAllWindows()

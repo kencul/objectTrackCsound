@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from genYaml import genYaml
 import constants
 import shutil # for copying files
 
@@ -34,8 +33,13 @@ def check_project_dir(directory):
     
     if not object_yaml_path.exists():
         print(f"Object model file '{constants.YAML_PATH}' does not exist in the directory. Creating one now...")
-        genYaml(directory)
+        src_path = Path("src/objects.yaml")  # Assuming the source file is in a src directory
         was_incomplete = True
+        if src_path.exists():
+            shutil.copy(src_path, object_yaml_path)
+            print(f"Copied '{constants.YAML_PATH}' to {object_yaml_path.resolve()}")
+        else:
+            raise FileNotFoundError(f"Source object model file not found at {src_path.resolve()}. Please ensure it exists.")
     
     # Check if csound.csd exists
     csound_csd_path = directory / 'csound.csd'
