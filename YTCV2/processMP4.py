@@ -5,18 +5,19 @@ import numpy as np
 from ultralytics import YOLO # for inference model
 # import time # for frame timing
 # from datetime import timedelta
-from cap_from_youtube import cap_from_youtube # to capture video from YouTube
+#from cap_from_youtube import cap_from_youtube # to capture video from YouTube
 import sys # for command line arguments
 import os # for file path handling
 from pathlib import Path # for path handling
-
-from csound import csound # for audio processing
-import constants
-
 import random # for random number generation
 import yaml # for accessing yaml file
+
+from csound import csound # for audio processing
+
+# My script imports
+import constants
 import accessYaml # for accessing yaml data
-from genYaml import genYaml # for generating yaml file
+#from genYaml import genYaml # for generating yaml file
 import projectDir # for project directory management
 import downloadYT # for downloading YouTube videos
 
@@ -41,36 +42,6 @@ yolo = YOLO('yolo11n.pt')
 config_yaml = directory / 'config.yaml'
 with open(config_yaml, 'r') as f:
     config_data = yaml.safe_load(f)
-
-#----------------------------------------------------
-# Calculate maximum scale for the frame while maintaining aspect ratio
-def findScale(original_width, original_height):
-    aspect_ratio = original_width / original_height
-    
-    print(f"Frame resolution: {original_width}x{original_height}, Aspect Ratio: {aspect_ratio:.2f}")
-    max_scale_for_width = screen_width / original_width
-    max_scale_for_height = screen_height / original_height
-
-    # Calculate the maximum allowable scale to fit within screen dimensions
-    if max_scale_for_width > 0 and max_scale_for_height > 0:
-        max_scale = min(max_scale_for_width, max_scale_for_height)
-    elif max_scale_for_width == 0 or max_scale_for_height == 0:
-        max_scale = 1.0
-
-    # Use the calculated scale to resize image
-    new_width = int(original_width * max_scale)
-    new_height = int(original_height * max_scale)
-    print(f"Resized dimensions: {new_width}x{new_height}")
-    return new_width, new_height
-
-# Determine if resizing is needed
-
-cv2.namedWindow('frame', cv2.WINDOW_NORMAL)
-screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Fetch screen resolutions
-needResizing = screen_width is None or screen_height is None
-if needResizing:
-    width, height = findScale(original_width, original_height)
-    
 
 #-----------------------------------------------------------------
 # Load the video capture
@@ -107,6 +78,35 @@ original_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 original_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
 #frametime = int(1 / fps * 1000)
 
+#----------------------------------------------------
+# Calculate maximum scale for the frame while maintaining aspect ratio
+def findScale(original_width, original_height):
+    aspect_ratio = original_width / original_height
+    
+    print(f"Frame resolution: {original_width}x{original_height}, Aspect Ratio: {aspect_ratio:.2f}")
+    max_scale_for_width = screen_width / original_width
+    max_scale_for_height = screen_height / original_height
+
+    # Calculate the maximum allowable scale to fit within screen dimensions
+    if max_scale_for_width > 0 and max_scale_for_height > 0:
+        max_scale = min(max_scale_for_width, max_scale_for_height)
+    elif max_scale_for_width == 0 or max_scale_for_height == 0:
+        max_scale = 1.0
+
+    # Use the calculated scale to resize image
+    new_width = int(original_width * max_scale)
+    new_height = int(original_height * max_scale)
+    print(f"Resized dimensions: {new_width}x{new_height}")
+    return new_width, new_height
+
+# Determine if resizing is needed
+
+cv2.namedWindow('frame', cv2.WINDOW_AUTOSIZE)
+screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Fetch screen resolutions
+needResizing = screen_width is not None and screen_height is not None
+if needResizing:
+    width, height = findScale(original_width, original_height)
+    
         
 # Function to get class colors
 def getColours(cls_num):
@@ -139,10 +139,9 @@ res = cs.initialize()
 if cs == 1:
     print("Csound initialization failed.")
     sys.exit(1)
-
 cs.start()
 cs.set_control_channel("freq", 110)
-playing = False
+#playing = False
 
 active_ids = {}
 
@@ -167,8 +166,8 @@ while cap.isOpened():
 
         # Visualize the result on the frame
         frame = result.plot()
-
-        # Plot the tracks
+        # extra code...
+        # Iterate through the boxes and track IDs
         for box, track_id, class_id in zip(boxes, track_ids, class_ids):
             x, y, w, h = box
             track = track_history[track_id]
@@ -179,9 +178,6 @@ while cap.isOpened():
             cs.set_control_channel(f"y{track_id}", 1 - y_ratio(y))
             cs.set_control_channel(f"w{track_id}", w / original_width)
             cs.set_control_channel(f"h{track_id}", h / original_height)
-            # Debug
-            # print(f"x ratio: {x_ratio(x)}, y ratio: {1 - y_ratio(y)}")
-            # print(f"x coordinate: {x}, y coordinate: {y}")
             
             if len(track) > 30:  # retain 30 tracks for 30 frames
                 track.pop(0)
@@ -195,8 +191,6 @@ while cap.isOpened():
                 instrNum = random.choice(yaml.access_data(constants.CLASSES[class_id]))
                 active_ids[track_id] = (instrNum)
                 cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)} {x} {y} {w} {h}")
-            
-            #print(f"Track ID: {track_id}, X: {x}, Y: {y}")
                 
         ids_to_remove = set(active_ids.keys()) - set(track_ids)
         for track_id in ids_to_remove:
@@ -227,8 +221,12 @@ while cap.isOpened():
 
     # Break the loop if 'q' is pressed
     key = cv2.waitKey(1) & 0xFF
-    if key == ord('q'):
+    if key == ord('q') or chr(key) == '\x1b':  # Check for 'q' or ESC key
         break
+    
+    # # Break loop if the window is closed
+    # if cv2.getWindowProperty('image',cv2.WND_PROP_VISIBLE) < 1:        
+    #     break
 
 # release the video capture and destroy all windows
 cv2.destroyAllWindows()
