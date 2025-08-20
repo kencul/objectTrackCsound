@@ -3,7 +3,7 @@
 # YT - use YouTube URL with name YT_URL
 # WEBCAM - use webcam
 
-SOURCE: "VIDEO"  # Options: "VIDEO", "YT", "WEBCAM"
+SOURCE: "YT"  # Options: "VIDEO", "YT", "WEBCAM"
 
 VIDEO_FILE: "templeBar.mp4"
 
