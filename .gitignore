@@ -4,7 +4,8 @@
 /datasets/
 *.onnx
 *.pt
-*.txt
 __pycache__/
 *.mp4
 highway/
+/env/
+processYTCV2.py

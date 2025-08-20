@@ -3,9 +3,6 @@ from collections import defaultdict # for expanding list
 import cv2 # for image processing
 import numpy as np
 from ultralytics import YOLO # for inference model
-# import time # for frame timing
-# from datetime import timedelta
-#from cap_from_youtube import cap_from_youtube # to capture video from YouTube
 import sys # for command line arguments
 import os # for file path handling
 from pathlib import Path # for path handling
@@ -17,7 +14,6 @@ from csound import csound # for audio processing
 # My script imports
 import constants
 import accessYaml # for accessing yaml data
-#from genYaml import genYaml # for generating yaml file
 import projectDir # for project directory management
 import downloadYT # for downloading YouTube videos
 
@@ -76,7 +72,6 @@ if start_time > 0:
 
 original_width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 original_height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-#frametime = int(1 / fps * 1000)
 
 #----------------------------------------------------
 # Calculate maximum scale for the frame while maintaining aspect ratio
@@ -99,9 +94,9 @@ def findScale(original_width, original_height):
     print(f"Resized dimensions: {new_width}x{new_height}")
     return new_width, new_height
 
-# Determine if resizing is needed
+cv2.namedWindow('frame', cv2.WINDOW_AUTOSIZE) # Set window so user cant resize it and mess with aspect ratio
 
-cv2.namedWindow('frame', cv2.WINDOW_AUTOSIZE)
+# Determine if resizing is needed based on config
 screen_width, screen_height = config_data.get('SCREEN_WIDTH', None), config_data.get('SCREEN_HEIGHT', None)  # Fetch screen resolutions
 needResizing = screen_width is not None and screen_height is not None
 if needResizing:
@@ -126,11 +121,12 @@ def y_ratio(y):
     """Converts a Y coordinate to a 0-1 ratio based on the image height."""
     return y / original_height
 
-# Accessing Yaml file to get instrument numbers for objects
+# Accessing Yaml file to get instrument numbers for objects when processing
 yaml = accessYaml.AccessYaml(directory)
 
 # --------------------------------------------------------------------
-# Store the track history
+# Store the track history in a dictionary
+# defaultdict is used to automatically init a list for each new track ID
 track_history = defaultdict(lambda: [])
 
 # Initialize Csound
@@ -140,16 +136,19 @@ if cs == 1:
     print("Csound initialization failed.")
     sys.exit(1)
 cs.start()
-cs.set_control_channel("freq", 110)
-#playing = False
 
 active_ids = {}
 
+#--------------------------------------------------------------
+# Process the video frame by frame
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
     
+    # Perform tracking using YOLO
+    # The persist=True option keeps the model loaded for subsequent frames, enabling tracking
+    # The verbose=False option suppresses additional output
     result = yolo.track(frame, 
                         persist=True, 
                         verbose=False, 
@@ -166,7 +165,7 @@ while cap.isOpened():
 
         # Visualize the result on the frame
         frame = result.plot()
-        # extra code...
+        
         # Iterate through the boxes and track IDs
         for box, track_id, class_id in zip(boxes, track_ids, class_ids):
             # access associated instrument numbers from yaml
@@ -175,6 +174,7 @@ while cap.isOpened():
             if instrList is None or len(instrList) == 0:
                 continue
             
+            # Get the coordinates of the bounding box
             x, y, w, h = box
             track = track_history[track_id]
             track.append((x, y))
@@ -185,6 +185,7 @@ while cap.isOpened():
             cs.set_control_channel(f"w{track_id}", w / original_width)
             cs.set_control_channel(f"h{track_id}", h / original_height)
             
+            # Record the movement of the object
             if len(track) > 30:  # retain 30 tracks for 30 frames
                 track.pop(0)
 
@@ -198,17 +199,20 @@ while cap.isOpened():
                 active_ids[track_id] = (instrNum)
                 cs.event_string(f"i {instrNum}.{track_id} 0 -1 {track_id} {config_data.get('BASE_FREQ', 440)} {config_data.get('AMP', 0.5)/config_data.get('MAX_DETECTIONS', 5)} {x} {y} {w} {h}")
                 
-        ids_to_remove = set(active_ids.keys()) - set(track_ids)
+        # Get list of track IDs that are playing but not in the current frame
+        ids_to_remove = set(active_ids.keys()) - set(track_ids) 
+        
+        # Stop Csound instruments of the tracks that are no longer detected
         for track_id in ids_to_remove:
             # Remove the track from active_ids
             instrNum = active_ids.pop(track_id)
             cs.event_string(f"i -{instrNum}.{track_id} 0 0")
-            #print(f"Stopping track ID: {track_id}")
             
-            # Remove the entry from track_history if needed
+            # Remove the entry from track_history
             if track_id in track_history:
-                del track_history[track_id]           
-    # If no boxes are detected, stop all active voices
+                del track_history[track_id]    
+                       
+    # If no objects are detected, stop all active voices
     else:
         if len(active_ids) != 0:
             track_ids = list(active_ids.keys())
@@ -225,7 +229,7 @@ while cap.isOpened():
     # Show the image
     cv2.imshow('frame', frame)
 
-    # Break the loop if 'q' is pressed
+    # Break the loop if 'q' or esc is pressed
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q') or chr(key) == '\x1b':  # Check for 'q' or ESC key
         break

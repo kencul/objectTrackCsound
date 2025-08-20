@@ -1,0 +1,10 @@
+# VideoCsound Requirements
+# Install with: pip install -r requirements.txt
+
+ultralytics>=8.0.0  # For YOLOv11 model and object tracking
+opencv-python>=4.12.0.88  # For video I/O and basic image processing (CV2)
+pyyaml>=6.0  # For reading and writing YAML configuration files
+yt-dlp>=2025.8.20  # For downloading YouTube videos and handling metadata. Ffmpeg is highly recommended for video processing
+
+# Note: The Csound application itself (e.g., Csound 7) must be installed separately from https://github.com/csound/csound
+# locate ctcsound.py file in your Csound installation directory, and place it in venv/lib/site-packages/, or wherever python will be able to find it
