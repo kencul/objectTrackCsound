@@ -10,10 +10,11 @@ class AccessYaml:
     
     def access_data(self, key):
         value = self.data['objects'].get(key, None)
-        if value is None:
-            print(f"Key '{key}' not found in YAML file.")
+        # if value is None:
+        #     print(f"Key '{key}' not found in YAML file.")
+            
         if value == []:
-            print(f"Key '{key}' has an empty list. Using default value.")
+            #print(f"Key '{key}' has an empty list. Using default value.")
             value = self.data['objects'].get('default', None)
             
         print(f"Accessed key '{key}': {value}")

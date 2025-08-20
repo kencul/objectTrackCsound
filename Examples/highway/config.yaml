@@ -1,0 +1,32 @@
+# Set to:
+# VIDEO - use video file with name VIDEO_FILE
+# YT - use YouTube URL with name YT_URL
+# WEBCAM - use webcam
+
+SOURCE: "VIDEO"  # Options: "VIDEO", "YT", "WEBCAM"
+
+VIDEO_FILE: "highway.mp4"
+
+# example URL:
+YT_URL: "https://www.youtube.com/watch?v=59c6yIYIys8"
+# Seconds into the video to start at
+YT_START_TIME: 0
+
+#------------------------------------
+# Object detection settings
+YOLO_CONFIDENCE: 0.5
+YOLO_IOU_THRESHOLD: 0.5
+MAX_DETECTIONS: 5
+
+#------------------------------------
+# Output video settings
+# Sets maximum pixel dimensions of the output video
+# Video will be resized to fit within these dimensions
+SCREEN_WIDTH: 1800
+SCREEN_HEIGHT: 1000
+
+#------------------------------------
+# Audio Config
+
+BASE_FREQ: 110
+AMP: 0.5

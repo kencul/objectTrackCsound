@@ -1,29 +1,106 @@
-## References
+# VideoCsound
+## Ken Kobayashi - 8/20/25
 
-- [Getting started with YOLO in opencv for Object Detection](https://www.geeksforgeeks.org/computer-vision/object-detection-with-yolo-and-opencv/)
+## Description
 
-This website was a good introduction for code for object detection from the webcam. The example code at the end works straight out of the box, and was a basis for my code
+VideoCsound is a performance system that bridges computer vision and algorithmic composition. It analyzes live video feeds or pre-recorded videos using the YOLOv11 object detection model, tracks the movement of detected objects, and uses this data to generate synchronized, generative music in real-time via the Csound audio engine.
 
-- [Quick start YOLO with ultralytics](https://docs.ultralytics.com/quickstart/#conda-docker-image)
+## Features
 
-Getting Ultralytics set up was important to delve into inference models. They provide the YOLO model, which is what I am using for object detection and tracking. It also introduced me to PyTorch and Cuda for training my own models. Although not needed for this project, models can be trained for a specific application, instead of the generic everyday objects that the pretrained models detect. However, this project will do just fine with the pretrained models.
+- **Real-time Object Detection & Tracking:** Leverages the Ultralytics YOLOv11 model to detect and track up to 80 different object types from the COCO dataset.
 
-- [Model Prediction with Ultralytics YOLO](https://docs.ultralytics.com/modes/predict/)
+- **Generative Audio Synthesis:** Triggers and manipulates Csound instruments based on object type, position, and movement.
 
-Documentation on inference using YOLO in Ultralytics. Although tracking (which keeps track of each object and their movements) is more applicable for this project, this page has specific documentation on arguments, attributes, and methods of many of the methods I am using. It also has example code snippets and general precautions useful for using YOLO in ultralytics.
+- **Multiple Video Sources:** Supports YouTube URLs, local video files (.mp4, .mov, etc.), and live webcam feeds.
 
-- [Object Tracking with Ultralytics YOLO](https://docs.ultralytics.com/modes/track/)
+- **Project-Based Configuration:** Simple YAML-based configuration system for managing different performances and sound designs.
 
-Documentation on object tracking using YOLO in Ultralytics. Main function of YOLO used in this project. Has example code of how to set up object tracking and examples in Python.
+- **Flexible Sound Design:** Each detected object type can be mapped to one or multiple custom Csound instruments.
 
-- [Python Library for Grabbing Youtube videos to process with CV](https://github.com/ibaiGorordo/cap_from_youtube/tree/main)
+## Requirements
 
-Using this library is gives more control than Ultralytic functions' youtube grabber. Using this library fixed stuttering due to buffering/fps issues by lowering the quality of the input video.
+- Python 3.8+
+- FFmpeg (for YouTube downloads)
+- Csound 7 - donwload the beta from the (Csound GitHub develop branch)[https://github.com/csound/csound]
+- Git (Optional, for cloning repository)
 
-- [Code example for drawing tracking lines with CV2 and Ultralytics YOLO](https://docs.ultralytics.com/modes/track/#plotting-tracks-over-time)
+## Installation
 
-This code snippet was used to visualize the movement of the detected objects.
+1. Clone or download repository
 
-- [YT-DLP](https://github.com/yt-dlp/yt-dlp)
+```bash
+git clone <your-repository-url>
+cd VideoCsound
+```
 
-What cap_from_youtube is built on. Better for downloading and access to metadata
+2. Create a Virtual Environment (Recommended)
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+```
+
+3. Install Required Python Packages
+```bash
+pip install -r requirements.txt
+```
+
+## Project Setup
+
+VideoCsound uses a project-based system. Each performance or experiment should have its own directory containing three essential configuration files.
+
+1. Run the main script pointing to your new directory. This will generate the necessary template files and then exit.
+
+```bash
+python processMP4.py my_performance
+```
+
+2. You can now edit the generated files in the my_performance/ folder to configure your piece.
+
+## Configuration Files
+
+1. ```config.yaml```
+
+This file defines the core parameters for the program.
+
+2. ```objects.yaml```
+
+This file maps the 80 COCO object classes to Csound instrument numbers. The program will randomly choose an instrument from the list provided for each object type.
+
+3. ```csound.csd```
+
+This is your Csound orchestra file. Define your instruments here. The program will send data to your instruments via p-fields and control channels.
+
+## Usage
+
+1. Configure your project: Edit the three files (config.yaml, objects.yaml, csound.csd) in your project directory.
+
+2. Run the program: Execute the main script from the terminal, passing the project directory name as the argument.
+```bash
+python processMP4.py my_performance
+```
+
+3. Interact with the program:
+
+    - A window will open showing the video feed with bounding boxes and labels around detected objects.
+
+    - Audio will be generated in real-time based on the objects and their movements.
+
+    - Press q or ESC to quit the program.
+
+## Troubleshooting
+
+- Low Frame Rate: This is often caused by high-resolution video sources. Pre-process videos to 640x640 resolution or use the OUTPUT_WIDTH and OUTPUT_HEIGHT settings in config.yaml to downscale the display.
+
+- Audio Lag: This is a known issue with the real-time processing approach of the program. Further investigation is needed to find the source of this issue
+
+- Model Doesn't Detect My Object: The pre-trained YOLOv11 model is best at detecting common objects like people, cars, and animals. For best results, use video sources featuring these. For specialized objects, you would need to train a custom model.
+
+- Csound Instruments Not Triggering: Double-check your objects.yaml file. Ensure the object name is spelled correctly (see the constants.py file for the full list) and that the instrument number matches an instrument defined in your csound.csd file.
+
+## Acknowledgments
+
+- Ultralytics for the YOLOv11 model and library.
+
+- The Csound community for the powerful audio synthesis environment.
+
+- OpenCV for computer vision utilities.

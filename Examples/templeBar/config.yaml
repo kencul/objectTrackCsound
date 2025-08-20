@@ -5,25 +5,26 @@
 
 SOURCE: "VIDEO"  # Options: "VIDEO", "YT", "WEBCAM"
 
-VIDEO_FILE: "video.mp4"
+VIDEO_FILE: "templeBar.mp4"
 
-# example URL:
-YT_URL: "https://www.youtube.com/watch?v=alN1ePd2mrg"
-# Seconds into the video to start at
-YT_START_TIME: 0
+# "https://www.youtube.com/watch?v=O0du5kMKHMk"   # Ireland
+# "https://www.youtube.com/watch?v=alN1ePd2mrg" # cats
+YT_URL: "https://www.youtube.com/watch?v=O0du5kMKHMk" # Ireland
+YT_START_TIME: 50
 
 #------------------------------------
 # Object detection settings
-YOLO_CONFIDENCE: 0.3
+YOLO_CONFIDENCE: 0.5
 YOLO_IOU_THRESHOLD: 0.5
-MAX_DETECTIONS: 1
+MAX_DETECTIONS: 10
 
 #------------------------------------
 # Output video settings
 # Sets maximum pixel dimensions of the output video
 # Video will be resized to fit within these dimensions
-SCREEN_WIDTH: 1728
-SCREEN_HEIGHT: 972
+# Leave either empty to use the original video dimensions
+SCREEN_WIDTH: 1800
+SCREEN_HEIGHT: 1000
 
 #------------------------------------
 # Audio Config

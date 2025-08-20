@@ -153,7 +153,7 @@ while cap.isOpened():
     result = yolo.track(frame, 
                         persist=True, 
                         verbose=False, 
-                        conf=config_data.get('YOLO_CONF_THRESHOLD', 0.3),
+                        conf=config_data.get('YOLO_CONFIDENCE', 0.3),
                         iou=config_data.get('YOLO_IOU_THRESHOLD', 0.5),
                         max_det=config_data.get('MAX_DETECTIONS', 3))[0]
     

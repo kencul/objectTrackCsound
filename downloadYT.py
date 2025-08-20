@@ -60,7 +60,7 @@ def download_video(url, directory, id):
     
     # Download options
     ydl_opts = {
-        "format": "best",  # Download the best available quality
+        "format": "any",  # Download the best available quality
         "outtmpl": str(output_path),  # Output filename pattern
         "quiet": False,  # Show progress in console
     }
