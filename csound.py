@@ -3,6 +3,10 @@ import ctcsound
 import sys
 from pathlib import Path
 
+'''
+This module provides a class to wrap the Csound API for audio synthesis.
+It initializes Csound, compiles a CSD file, and provides methods to control audio events.
+'''
 
 class csound:
     def __init__(self, directory):
@@ -21,6 +25,8 @@ class csound:
         if result != ctcsound.CSOUND_SUCCESS:
             print(f"Error compiling csd!", file=sys.stderr)
             return 1
+        
+        # Start the Csound performance thread so it isn't blocking
         self.csthread = ctcsound.CsoundPerformanceThread(self.cs.csound())
         print("Csound initialized successfully.")
         return 0
@@ -39,22 +45,6 @@ class csound:
         if not self.csthread.is_running():
             print(f"Error starting Csound performance thread!", file=sys.stderr)
             return 1
-
-        # # Step 4: interact with Csound
-        # # Sending events (score statements)
-        # self.cs.event_string("i1 0 2")
-        # self.cs.event_string("e 2")
-        # # Controlling channels
-        # self.cs.set_control_channel("pitch", 880)
-        # # Get audio buffers
-        # inBuff = self.cs.spin()
-        # outBuff = self.cs.spout()
-        # # Get ftable
-        # table = self.cs.table(1)
-
-        # # Step 5: Compute audio blocks
-        # while self.cs.perform_ksmps() == ctcsound.CSOUND_SUCCESS:
-        #     continue
         
         return 0
 

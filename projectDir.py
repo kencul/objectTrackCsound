@@ -4,6 +4,12 @@ from pathlib import Path
 import constants
 import shutil # for copying files
 
+"""
+This module provides functions to initialize and check the project directory.
+It ensures that necessary files like objects.yaml, csound.csd, and config.yaml exist.
+If any of these files are missing, it copies them from a source directory.
+"""
+
 def init_project_dir(directory):
     """
     Initialize the project directory
@@ -65,9 +71,5 @@ def check_project_dir(directory):
         else:
             raise FileNotFoundError(f"Source constants file not found at {src_constants_path.resolve()}. Please ensure it exists.")
     
+    # If project directory was incomplete, then dont run the rest of the program
     return was_incomplete
-# if __name__ == "__main__":
-#     # Take argument for project directory
-
-#     if len(sys.argv) >= 2:
-#         check_project_dir(sys.argv[1])
