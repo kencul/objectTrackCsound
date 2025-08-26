@@ -6,8 +6,8 @@
 # Setting default to an empty list will make it not play any instrument
 
 objects:
-  default: []
-  person: [3]
+  default: [3]
+  person: []
   bicycle: []
   car: [1]
   motorcycle: []

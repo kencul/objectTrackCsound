@@ -61,16 +61,16 @@ instr 3
     rand1:k = randh:k(randAmp1, randFreq1, 10) ; randomize with time seed
     a1 = oscil:a(amp1, (iFreq  * (1.01+ky)) + rand1, 24, .3)           
 
-    randAmp2:k  = expsegr:k(1, 3.1, 25, 2, 1)
-    randFreq2:k = expsegr:k(2, 3, 35, 2, 2)
-    amp2:k init 0
-    amp2 = linsegr:k(i(amp2), 2, p6, 3, 0)
-    rand2:k = randh:k(randAmp2, randFreq2, 10) ; randomize with time seed
-    a2 = oscil:a(amp2, (iFreq  * (1.05+ky)) + rand2, 24, .3) 
-
     aOutL, aOutR pan2 a1, kx
 
     outs aOutL, aOutR
+
+    ; randAmp2:k  = expsegr:k(1, 3.1, 25, 2, 1)
+    ; randFreq2:k = expsegr:k(2, 3, 35, 2, 2)
+    ; amp2:k init 0
+    ; amp2 = linsegr:k(i(amp2), 2, p6, 3, 0)
+    ; rand2:k = randh:k(randAmp2, randFreq2, 10) ; randomize with time seed
+    ; a2 = oscil:a(amp2, (iFreq  * (1.05+ky)) + rand2, 24, .3) 
 endin
 
 
